@@ -9,9 +9,10 @@ FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}
 COPY mindpump/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt -t "${LAMBDA_TASK_ROOT}"
 
-# Copy Lambda handler and Django project
+# Copy Lambda handler and Django project (inner mindpump = Django project with asgi.py)
 COPY handler.py .
-COPY mindpump/ mindpump/
+COPY mindpump/mindpump/ mindpump/
+COPY mindpump/api/ mindpump/api/
 
 # Build-time args (e.g. from GitHub Actions); override in Lambda function env if needed
 ARG DB_NAME=postgres
