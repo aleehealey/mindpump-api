@@ -1,29 +1,22 @@
-# Django API image for AWS Lambda (container image support).
-# Build with args: docker build -f api/Dockerfile --build-arg DB_PASSWORD=... api/
-# Lambda Web Adapter forwards requests to port 8080 by default.
+# Django API for AWS Lambda via Mangum (ASGI adapter for API Gateway).
+# Build: docker build -f Dockerfile .
+# Lambda handler: handler.handler (Mangum wraps Django ASGI).
 
 ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim
+FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=mindpump.settings
+# Install libpq for psycopg2 (Lambda base is Amazon Linux)
+RUN yum install -y postgresql-libs && yum clean all
 
-WORKDIR /app
-
-# Install runtime deps (optional, for psycopg2 etc. if you add DB later)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
+# Install Python dependencies into Lambda task root
 COPY mindpump/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt -t "${LAMBDA_TASK_ROOT}"
 
-# Copy Django project (mindpump = project package + api app)
-COPY mindpump/ .
+# Copy Lambda handler and Django project
+COPY handler.py .
+COPY mindpump/ mindpump/
 
-# Build-time args (e.g. from GitHub Actions); can also override at runtime via -e
+# Build-time args (e.g. from GitHub Actions); override in Lambda function env if needed
 ARG DB_NAME=postgres
 ARG DB_USER=postgres
 ARG DB_PASSWORD=
@@ -32,7 +25,8 @@ ARG DB_PORT=5432
 ARG API_BASIC_AUTH_USERNAME=
 ARG API_BASIC_AUTH_PASSWORD=
 
-ENV DB_NAME=${DB_NAME} \
+ENV DJANGO_SETTINGS_MODULE=mindpump.settings \
+    DB_NAME=${DB_NAME} \
     DB_USER=${DB_USER} \
     DB_PASSWORD=${DB_PASSWORD} \
     DB_HOST=${DB_HOST} \
@@ -40,8 +34,5 @@ ENV DB_NAME=${DB_NAME} \
     API_BASIC_AUTH_USERNAME=${API_BASIC_AUTH_USERNAME} \
     API_BASIC_AUTH_PASSWORD=${API_BASIC_AUTH_PASSWORD}
 
-# Lambda Web Adapter expects the app to listen on 8080
-EXPOSE 8080
-
-# Run gunicorn; 1 worker is typical for Lambda (one invocation at a time per instance)
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "2", "--timeout", "30", "mindpump.wsgi:application"]
+# Mangum handler: receives API Gateway events and forwards to Django ASGI
+CMD ["handler.handler"]
