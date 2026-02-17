@@ -19,6 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", include("mindpump.api.urls")),
+    path("default/mindpump-api/admin/", admin.site.urls),
+    path("default/mindpump-api/api/", include("mindpump.api.urls")),
 ]
