@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     
     'rest_framework',
-    'api',
+    'mindpump.api',
 ]
 
 MIDDLEWARE = [
@@ -73,22 +73,31 @@ TEMPLATES = [
 WSGI_APPLICATION = "mindpump.wsgi.application"
 
 
-# Database – all from environment variables (set in Docker/Lambda or shell).
+# Database – PostgreSQL when DB_HOST is set (Docker/Lambda), else SQLite for local dev.
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "postgres"),
-        "USER": os.environ.get("DB_USER", "postgres"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-        "HOST": os.environ.get("DB_HOST", ""),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-        "OPTIONS": {
-            "sslmode": "verify-full",
-            "sslrootcert": "/certs/global-bundle.pem",
-        },
+_db_host = os.environ.get("DB_HOST", "").strip()
+if _db_host:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "postgres"),
+            "USER": os.environ.get("DB_USER", "postgres"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": _db_host,
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "OPTIONS": {
+                "sslmode": "verify-full",
+                "sslrootcert": "/certs/global-bundle.pem",
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -138,7 +147,7 @@ API_BASIC_AUTH_PASSWORD = os.environ.get("API_BASIC_AUTH_PASSWORD", "")
 # DRF: require Basic Auth for API
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "api.authentication.SettingsBasicAuthentication",
+        "mindpump.api.authentication.SettingsBasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
