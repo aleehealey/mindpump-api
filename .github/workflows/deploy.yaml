@@ -57,8 +57,8 @@ jobs:
 
       - name: Push image to ECR
         run: |
-          docker push ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          docker push ${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
       # Uncomment to update Lambda to use the new image (Lambda must be configured for container image).
       # - name: Update Lambda function with new image
