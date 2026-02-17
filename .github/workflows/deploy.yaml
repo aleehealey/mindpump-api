@@ -42,8 +42,9 @@ jobs:
       - name: Build Docker image
         run: |
           docker buildx build \
-            --platform linux/arm64 \
+            --platform linux/amd64 \
             --provenance=false \
+            --load \
             -f Dockerfile \
             --build-arg PYTHON_VERSION=${{ vars.DOCKER_PYTHON_VERSION || '3.12' }} \
             --build-arg DB_NAME=${{ vars.DB_NAME || 'postgres' }} \
