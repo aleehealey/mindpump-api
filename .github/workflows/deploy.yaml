@@ -51,8 +51,8 @@ jobs:
             --build-arg DB_PORT=${{ vars.DB_PORT || '5432' }} \
             --build-arg API_BASIC_AUTH_USERNAME=${{ vars.API_BASIC_AUTH_USERNAME || '' }} \
             --build-arg API_BASIC_AUTH_PASSWORD="${{ secrets.API_BASIC_AUTH_PASSWORD }}" \
-            -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
-            -t ${{ env.ECR_REPOSITORY }}:latest \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
             .
 
       - name: Push image to ECR
