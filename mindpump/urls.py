@@ -16,9 +16,16 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import path, include
+
+
+def health(request):
+    """Root health check – no auth, returns Hello world!"""
+    return HttpResponse("Hello world!", content_type="text/plain; charset=utf-8")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("mindpump.api.urls")),
+    path("health/", health, name="health"),
 ]
