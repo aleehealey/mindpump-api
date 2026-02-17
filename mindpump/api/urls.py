@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import FlashcardSetViewSet, FlashcardStudyView
+from .views import FlashcardSetViewSet, FlashcardStudyView, HealthView
 
 router = DefaultRouter()
 router.register(r"sets", FlashcardSetViewSet, basename="flashcardset")
 
 urlpatterns = [
+    path("health/", HealthView.as_view(), name="health"),
     path("", include(router.urls)),
     path("cards/<int:pk>/study/", FlashcardStudyView.as_view(), name="card-study"),
 ]

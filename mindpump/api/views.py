@@ -1,10 +1,19 @@
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 
 from .models import FlashcardSet, Flashcard
+
+
+class HealthView(APIView):
+    """GET /api/health/ – returns Hello world! (no auth required)."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response("Hello world!", content_type="text/plain; charset=utf-8")
 from .repositories import FlashcardSetRepository, FlashcardRepository
 from .serializers import (
     FlashcardSetSerializer,
