@@ -9,10 +9,8 @@ FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}
 COPY mindpump/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt -t "${LAMBDA_TASK_ROOT}"
 
-# Copy Lambda handler and Django project (inner mindpump = Django project with asgi.py)
-COPY handler.py .
-COPY mindpump/mindpump/ mindpump/
-COPY mindpump/api/ mindpump/api/
+# Copy everything into Lambda task root
+COPY . ${LAMBDA_TASK_ROOT}/
 
 # Build-time args (e.g. from GitHub Actions); override in Lambda function env if needed
 ARG DB_NAME=postgres
@@ -23,7 +21,7 @@ ARG DB_PORT=5432
 ARG API_BASIC_AUTH_USERNAME=
 ARG API_BASIC_AUTH_PASSWORD=
 
-ENV DJANGO_SETTINGS_MODULE=mindpump.settings \
+ENV DJANGO_SETTINGS_MODULE=mindpump.mindpump.settings \
     DB_NAME=${DB_NAME} \
     DB_USER=${DB_USER} \
     DB_PASSWORD=${DB_PASSWORD} \
