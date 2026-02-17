@@ -5,10 +5,7 @@
 ARG PYTHON_VERSION=3.12
 FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}
 
-# Install libpq for psycopg2 (Lambda base is Amazon Linux)
-RUN yum install -y postgresql-libs && yum clean all
-
-# Install Python dependencies into Lambda task root
+# Install Python dependencies into Lambda task root (psycopg2-binary is self-contained)
 COPY mindpump/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt -t "${LAMBDA_TASK_ROOT}"
 
